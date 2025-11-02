@@ -1,5 +1,6 @@
 /*
  * Written by Luke McCarthy <luke@iogopro.co.uk>
+ * https://github.com/ljmccarthy/sorting_algorithms
  *
  * This is free and unencumbered software released into the public domain.
  *

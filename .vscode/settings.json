@@ -1,8 +1,9 @@
 {
+    "C_Cpp.autoAddFileAssociations": false,
+    "C_Cpp.default.defines": [
+        "LIBBSD_OVERLAY"
+    ],
     "C_Cpp.default.includePath": [
         "/usr/include/bsd"
     ],
-    "C_Cpp.default.defines": [
-        "LIBBSD_OVERLAY"
-    ]
 }
