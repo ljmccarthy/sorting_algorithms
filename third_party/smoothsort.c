@@ -82,7 +82,7 @@ typedef int (*cmpfun)(const void *, const void *, void *);
 
 static inline int pntz(size_t p[2]) {
 	int r = ntz(p[0] - 1);
-	if(r != 0 || (r = 8*sizeof(size_t) + ntz(p[1])) != 8*sizeof(size_t)) {
+	if(r != 0 || (r = 8*(int)sizeof(size_t) + ntz(p[1])) != 8*(int)sizeof(size_t)) {
 		return r;
 	}
 	return 0;
@@ -113,25 +113,25 @@ static void cycle(size_t width, unsigned char* ar[], int n)
 /* shl() and shr() need n > 0 */
 static inline void shl(size_t p[2], int n)
 {
-	if(n >= 8 * sizeof(size_t)) {
+	if(n >= 8 * (int)sizeof(size_t)) {
 		n -= 8 * sizeof(size_t);
 		p[1] = p[0];
 		p[0] = 0;
 	}
 	p[1] <<= n;
-	p[1] |= p[0] >> (sizeof(size_t) * 8 - n);
+	p[1] |= p[0] >> ((int)sizeof(size_t) * 8 - n);
 	p[0] <<= n;
 }
 
 static inline void shr(size_t p[2], int n)
 {
-	if(n >= 8 * sizeof(size_t)) {
-		n -= 8 * sizeof(size_t);
+	if(n >= 8 * (int)sizeof(size_t)) {
+		n -= 8 * (int)sizeof(size_t);
 		p[0] = p[1];
 		p[1] = 0;
 	}
 	p[0] >>= n;
-	p[0] |= p[1] << (sizeof(size_t) * 8 - n);
+	p[0] |= p[1] << ((int)sizeof(size_t) * 8 - n);
 	p[1] >>= n;
 }
 
@@ -224,7 +224,7 @@ void smoothsort(void *base, size_t nel, size_t width, cmpfun cmp, void *arg)
 			shr(p, 2);
 			pshift += 2;
 		} else {
-			if(lp[pshift - 1] >= high - head) {
+			if(lp[pshift - 1] >= (size_t)(high - head)) {
 				trinkle(head, width, cmp, arg, p, pshift, 0, lp);
 			} else {
 				sift(head, width, cmp, arg, pshift, lp);
