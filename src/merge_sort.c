@@ -38,6 +38,7 @@
 #define unlikely(x) (x)
 #endif
 
+#if defined(__APPLE__)
 static void copy(void *dst_ptr, const void *src_ptr, size_t size)
 {
     char *dst = dst_ptr;
@@ -45,6 +46,13 @@ static void copy(void *dst_ptr, const void *src_ptr, size_t size)
     char *dst_end = dst + size;
     do { *dst++ = *src++; } while (dst != dst_end);
 }
+#else
+#include <string.h>
+static void copy(void *dst_ptr, const void *src_ptr, size_t size)
+{
+    memcpy(dst_ptr, src_ptr, size);
+}
+#endif
 
 static void sort_two(char *array, char *merge_array, size_t size, compare_fn_t compare, void *context)
 {
