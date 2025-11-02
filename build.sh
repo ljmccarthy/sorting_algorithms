@@ -24,8 +24,13 @@ if [ -z "${CC+x}" ]; then
     CC=cc
 fi
 
+PLATFORM_CFLAGS=""
+if [ "$(uname)" = Linux ]; then
+    PLATFORM_CFLAGS="-DLIBBSD_OVERLAY -isystem /usr/include/bsd -lbsd"
+fi
+
 BUILD_DIR="build/$BUILD_TYPE"
-CFLAGS="$BUILD_TYPE_CFLAGS -std=c17 -Wall -Wextra -Wpedantic -Wconversion -Wstrict-overflow=5"
+CFLAGS="$BUILD_TYPE_CFLAGS $PLATFORM_CFLAGS -std=c17 -Wall -Wextra -Wpedantic -Wconversion -Wstrict-overflow=5"
 
 mkdir -p "$BUILD_DIR"
 $CC $CFLAGS -o "$BUILD_DIR/test_sort" src/*.c third_party/*.c

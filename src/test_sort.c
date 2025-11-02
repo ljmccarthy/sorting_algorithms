@@ -69,7 +69,9 @@ static const sort_fn_t sort_functions[] = {
     {"qsort", SORT_FN_NO_CONTEXT, {.no_context = qsort}},
     {"mergesort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = mergesort}},
     {"heapsort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = heapsort}},
+#if defined(__APPLE__)
     {"psort", SORT_FN_NO_CONTEXT, {.no_context = psort}},
+#endif
     {"smoothsort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = smoothsort}},
     {"merge_sort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort}},
     {"merge_sort_ptr", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_ptr}},
