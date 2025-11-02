@@ -123,12 +123,15 @@ static bool test_sort(void *array, size_t size, size_t nelems, const sort_fn_t *
     qsort(array_copy_check, nelems, size, compare_elem);
     bool result = (memcmp(array_copy_test, array_copy_check, nelems * size) == 0);
     if (!result) {
+        printf("\nArray after sort:\n");
         print_array(array_copy_test, nelems, size);
-        printf("\nTest '%s' failed!\n", test_name);
+        printf("Test '%s' failed!\n", test_name);
     }
     free(array_copy_test);
     free(array_copy_check);
+    if (result) {
     printf("\r\x1b[K");
+    }
     return result;
 }
 
@@ -308,7 +311,7 @@ int main(int argc, char **argv)
                 return 1;
             }
             unsigned long long size = strtoull(argv[++i], NULL, 10);
-            if (size <= 0 || size != (size_t) size) {
+            if (size <= 0 || size < sizeof(size_t) || size != (size_t) size) {
                 fprintf(stderr, "error: invalid element size: %llu\n", size);
                 usage();
                 return 1;
