@@ -29,6 +29,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__GNUC__) || defined(__clang__)
+
+static inline int a_ctz_l(unsigned long x)
+{
+	return __builtin_ctzl(x);
+}
+
+#else
+
 /* copied from atomic.h */
 
 static inline int a_ctz_32(uint32_t x)
@@ -64,6 +73,8 @@ static inline int a_ctz_l(unsigned long x)
 }
 
 /* end copied from atomic.h */
+
+#endif /* defined(__GNUC__) || defined(__clang__) */
 
 #define ntz(x) a_ctz_l((x))
 

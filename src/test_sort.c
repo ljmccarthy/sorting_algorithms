@@ -130,7 +130,7 @@ static bool test_sort(void *array, size_t size, size_t nelems, const sort_fn_t *
     free(array_copy_test);
     free(array_copy_check);
     if (result) {
-    printf("\r\x1b[K");
+        printf("\r\x1b[K");
     }
     return result;
 }
