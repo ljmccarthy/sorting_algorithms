@@ -17,23 +17,26 @@ if (-not (Get-Command cl.exe -ErrorAction SilentlyContinue)) {
 }
 
 if ($Configuration -eq "Debug") {
-    $ConfigurationFlags = "/MTd /Od /Zi"
+    $ConfigurationFlags = "/MTd", "/Od", "/Zi"
 } else {
-    $ConfigurationFlags = "/MT /O2 /DNDEBUG"
+    $ConfigurationFlags = "/MT", "/O2", "/DNDEBUG"
 }
 
-$BuildDir = Join-Path $PSScriptRoot "build" $Platform $Configuration
+$BuildDir = "$PSScriptRoot\build\$Platform\$Configuration"
 if (-not (Test-Path $buildDir)) {
     New-Item -ItemType Directory -Path $buildDir | Out-Null
 }
 
 $SrcFiles = Get-ChildItem -Path .\src -Filter *.c -File | ForEach-Object { $_.FullName }
 $SrcFiles += Get-ChildItem -Path .\third_party -Filter *.c -File | ForEach-Object { $_.FullName }
-$OutputExe = Join-Path $BuildDir "test_sort.exe"
-$clArgs = "/nologo /MP /W4 /std:c17 $ConfigurationFlags $($SrcFiles -join "") /Fe:`"$OutputExe`""
+$clArgs = "/nologo", "/MP", "/W3", "/std:c17", "/Fe:test_sort.exe" + $ConfigurationFlags + $SrcFiles  
 
+Push-Location $BuildDir
 & cl.exe $clArgs
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Build failed (exit code $LASTEXITCODE)."
-    exit $LASTEXITCODE
+$clExitCode = $LASTEXITCODE
+Pop-Location
+
+if ($clExitCode -ne 0) {
+    Write-Host "Build failed (exit code $clExitCode)."
+    exit $clExitCode
 }

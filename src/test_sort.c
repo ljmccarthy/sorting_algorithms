@@ -29,6 +29,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -68,8 +69,10 @@ typedef struct sort_function sort_fn_t;
 
 static const sort_fn_t sort_functions[] = {
     {"qsort", SORT_FN_NO_CONTEXT, {.no_context = qsort}},
+#if defined(LIBBSD_OVERLAY) || defined(__APPLE__)
     {"mergesort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = mergesort}},
     {"heapsort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = heapsort}},
+#endif
 #if defined(__APPLE__)
     {"psort", SORT_FN_NO_CONTEXT, {.no_context = psort}},
 #endif

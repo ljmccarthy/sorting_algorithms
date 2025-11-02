@@ -57,7 +57,7 @@ static inline int a_ctz_64(uint64_t x)
 		51, 25, 36, 32, 60, 20, 57, 16, 50, 31, 19, 15, 30, 14, 13, 12
 	};
 	if (sizeof(long) < 8) {
-		uint32_t y = x;
+		uint32_t y = (uint32_t)x;
 		if (!y) {
 			y = x>>32;
 			return 32 + a_ctz_32(y);
