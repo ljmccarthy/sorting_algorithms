@@ -1,7 +1,6 @@
 param(
     [ValidateSet("Debug","Release")]
-    [string]$Configuration="Release",
-    [string]$Platform="x64"
+    [string]$Configuration="Release"
 )
 
 $ErrorActionPreference = "Stop"
@@ -22,7 +21,7 @@ if ($Configuration -eq "Debug") {
     $ConfigurationFlags = "/MT", "/O2", "/DNDEBUG"
 }
 
-$BuildDir = "$PSScriptRoot\build\$Platform\$Configuration"
+$BuildDir = "$PSScriptRoot\build\$Configuration"
 if (-not (Test-Path $buildDir)) {
     New-Item -ItemType Directory -Path $buildDir | Out-Null
 }
