@@ -33,30 +33,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "sort.h"
+#include "util.h"
 
 typedef uint32_t index_t;
-
-#if defined(__GNUC__) || defined(__clang__)
-#define unlikely(x) __builtin_expect(!!(x), 0)
-#else
-#define unlikely(x) (x)
-#endif
-
-#if defined(__APPLE__)
-static void copy(void *dst_ptr, const void *src_ptr, size_t size)
-{
-    char *dst = dst_ptr;
-    const char *src = src_ptr;
-    char *dst_end = dst + size;
-    do { *dst++ = *src++; } while (dst != dst_end);
-}
-#else
-#include <string.h>
-static void copy(void *dst_ptr, const void *src_ptr, size_t size)
-{
-    memcpy(dst_ptr, src_ptr, size);
-}
-#endif
 
 static void *get_elem_ptr(void *base, size_t size, index_t index)
 {

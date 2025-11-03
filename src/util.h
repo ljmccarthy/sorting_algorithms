@@ -1,5 +1,5 @@
 /*
- * Written by Luke McCarthy <luke@iogopro.co.uk>, 3 Nov 2025
+ * Written by Luke McCarthy <luke@iogopro.co.uk>
  * https://github.com/ljmccarthy/sorting_algorithms
  *
  * This is free and unencumbered software released into the public domain.
@@ -28,24 +28,25 @@
  * For more information, please refer to <https://unlicense.org/>
  */
 
-#include <stdlib.h>
+#pragma once
+#include <stddef.h>
 #include <string.h>
-#include "sort.h"
-#include "util.h"
 
-void insertion_sort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context)
+#if defined(__GNUC__) || defined(__clang__)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#else
+#define unlikely(x) (x)
+#endif
+
+static void copy(void *dst_ptr, const void *src_ptr, size_t size)
 {
-    char temp_buf[1024];
-    char *temp = size > sizeof(temp_buf) ? malloc(size) : temp_buf;
-    char *end = (char *) base + nelems * size;
-    for (char *unsorted = (char *) base + size; unsorted != end; unsorted += size) {
-        for (char *cur = unsorted; cur != base && compare(cur - size, cur, context) > 0; cur -= size) {
-            copy(temp, cur - size, size);
-            copy(cur - size, cur, size);
-            copy(cur, temp, size);
-        }
-    }
-    if (temp != temp_buf) {
-        free(temp);
-    }
+#if defined(__APPLE__)
+    /* for some unknown reason this is faster than calling memcpy on Apple Silicon Macs */
+    char *dst = dst_ptr;
+    const char *src = src_ptr;
+    char *dst_end = dst + size;
+    do { *dst++ = *src++; } while (dst != dst_end);
+#else
+    memcpy(dst_ptr, src_ptr, size);
+#endif
 }
