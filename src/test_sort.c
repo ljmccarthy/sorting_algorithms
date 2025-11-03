@@ -52,6 +52,12 @@ enum sort_function_type {
     SORT_FN_CONTEXT_THEN_COMPARE_WITH_CONTEXT_LAST,
 };
 
+enum performance {
+    PERF_SLOW,
+    PERF_MID,
+    PERF_FAST,
+};
+
 struct sort_function {
     const char *name;
     enum sort_function_type type;
@@ -63,24 +69,25 @@ struct sort_function {
         void (*context_then_compare_with_context_first)(void *base, size_t nelems, size_t size, void *context, compare_with_context_first_fn_t compare);
         void (*context_then_compare_with_context_last)(void *base, size_t nelems, size_t size, void *context, compare_with_context_last_fn_t compare);
     } fn;
+    enum performance perf;
 };
 
 typedef struct sort_function sort_fn_t;
 
 static const sort_fn_t sort_functions[] = {
-    {"qsort", SORT_FN_NO_CONTEXT, {.no_context = qsort}},
+    {"qsort", SORT_FN_NO_CONTEXT, {.no_context = qsort}, .perf = PERF_FAST},
 #if defined(LIBBSD_OVERLAY) || defined(__APPLE__)
-    {"mergesort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = mergesort}},
-    {"heapsort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = heapsort}},
+    {"mergesort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = mergesort}, .perf = PERF_FAST},
+    {"heapsort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = heapsort}, .perf = PERF_MID},
 #endif
 #if defined(__APPLE__)
-    {"psort", SORT_FN_NO_CONTEXT, {.no_context = psort}},
+    {"psort", SORT_FN_NO_CONTEXT, {.no_context = psort}, .perf = PERF_FAST},
 #endif
-    {"bentley_mcilroy_quicksort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = bentley_mcilroy_quicksort}},
-    {"ochs_smoothsort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = ochs_smoothsort}},
-    {"merge_sort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort}},
-    {"merge_sort_ptr", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_ptr}},
-    {"merge_sort_indexed", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_indexed}},
+    {"bentley_mcilroy_quicksort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = bentley_mcilroy_quicksort}, .perf = PERF_FAST},
+    {"ochs_smoothsort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = ochs_smoothsort}, .perf = PERF_FAST},
+    {"merge_sort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort}, .perf = PERF_FAST},
+    {"merge_sort_ptr", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_ptr}, .perf = PERF_FAST},
+    {"merge_sort_indexed", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_indexed}, .perf = PERF_FAST},
 };
 
 static int compare_elem(const void *a_ptr, const void *b_ptr)
@@ -284,7 +291,13 @@ static bool run_tests(const sort_fn_t *sort, random_seed_t *seed, size_t array_s
     }
 
     double total_time_seconds = (double) total_time / CLOCKS_PER_SEC;
-    printf("Time: %.2f seconds\n", total_time_seconds);
+    if (total_time_seconds > 0.1) {
+        printf("Time: %.2f seconds\n", total_time_seconds);
+    } else if (total_time_seconds > 0.001) {
+        printf("Time: %.2f milliseconds\n", total_time_seconds * 1000.0);
+    } else {
+        printf("Time: %.2f microseconds\n", total_time_seconds * 1000000.0);
+    }
 #endif
 
     return true;
@@ -292,10 +305,11 @@ static bool run_tests(const sort_fn_t *sort, random_seed_t *seed, size_t array_s
 
 static void usage(void)
 {
+    static const char *perf_names[] = {"\x1b[31mslow\x1b[0m", "\x1b[33m mid\x1b[0m", "\x1b[32mfast\x1b[0m"};
     printf("usage: test_sort [-f <function>] [-n <array-size>] [-s <elem-size>] [-r <seed>]\n");
     printf("available sort functions:\n");
     for (size_t i = 0; i < ARRAY_SIZE(sort_functions); i++) {
-        printf("    %s\n", sort_functions[i].name);
+        printf("    %s  %s\n", perf_names[sort_functions[i].perf], sort_functions[i].name);
     }
 }
 
@@ -370,8 +384,10 @@ int main(int argc, char **argv)
     printf("Array size: %zu, Element size: %zu, Random seed: %u\n", array_size, elem_size, seed);
     if (!sort) {
         for (size_t i = 0; i < ARRAY_SIZE(sort_functions); i++) {
-            if (!run_tests(&sort_functions[i], &seed, array_size, elem_size)) {
-                return 1;
+            if (sort_functions[i].perf > PERF_SLOW || array_size <= 10000) {
+                if (!run_tests(&sort_functions[i], &seed, array_size, elem_size)) {
+                    return 1;
+                }
             }
         }
     } else {
