@@ -76,6 +76,7 @@ static const sort_fn_t sort_functions[] = {
 #if defined(__APPLE__)
     {"psort", SORT_FN_NO_CONTEXT, {.no_context = psort}},
 #endif
+    {"bentley_mcilroy_quicksort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = bentley_mcilroy_quicksort}},
     {"smoothsort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = smoothsort}},
     {"merge_sort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort}},
     {"merge_sort_ptr", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_ptr}},
