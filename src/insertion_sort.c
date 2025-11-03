@@ -40,9 +40,7 @@ void insertion_sort(void *base, size_t nelems, size_t size, compare_fn_t compare
     char *end = (char *) base + nelems * size;
     for (char *unsorted = (char *) base + size; unsorted != end; unsorted += size) {
         for (char *cur = unsorted; cur != base && compare(cur - size, cur, context) > 0; cur -= size) {
-            copy(temp, cur - size, size);
-            copy(cur - size, cur, size);
-            copy(cur, temp, size);
+            swap(cur - size, cur, temp, size);
         }
     }
     if (temp != temp_buf) {

@@ -38,7 +38,7 @@
 #define unlikely(x) (x)
 #endif
 
-static void copy(void *dst_ptr, const void *src_ptr, size_t size)
+static inline void copy(void *dst_ptr, const void *src_ptr, size_t size)
 {
 #if defined(__APPLE__)
     /* for some unknown reason this is faster than calling memcpy on Apple Silicon Macs */
@@ -49,4 +49,11 @@ static void copy(void *dst_ptr, const void *src_ptr, size_t size)
 #else
     memcpy(dst_ptr, src_ptr, size);
 #endif
+}
+
+static inline void swap(void *a_ptr, void *b_ptr, void *temp, size_t size)
+{
+    copy(temp, a_ptr, size);
+    copy(a_ptr, b_ptr, size);
+    copy(b_ptr, temp, size);
 }
