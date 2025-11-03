@@ -201,7 +201,7 @@ static void trinkle(unsigned char *head, size_t width, cmpfun cmp, void *arg, si
 	}
 }
 
-void smoothsort(void *base, size_t nel, size_t width, cmpfun cmp, void *arg)
+void ochs_smoothsort(void *base, size_t nel, size_t width, cmpfun cmp, void *arg)
 {
 	size_t lp[12*sizeof(size_t)];
 	size_t i, size = width * nel;
