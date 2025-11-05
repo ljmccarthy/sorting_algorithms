@@ -44,12 +44,14 @@ typedef int (*compare_with_context_first_fn_t)(void *context, const void *lhs, c
 typedef int (*compare_with_context_last_fn_t)(const void *lhs, const void *rhs, void *context);
 
 enum sort_function_type {
-    SORT_FN_NO_CONTEXT,
+    SORT_FN_VOID_NO_CONTEXT,
     SORT_FN_INT_NO_CONTEXT,
-    SORT_FN_COMPARE_WITH_CONTEXT_FIRST_THEN_CONTEXT,
-    SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT,
-    SORT_FN_CONTEXT_THEN_COMPARE_WITH_CONTEXT_FIRST,
-    SORT_FN_CONTEXT_THEN_COMPARE_WITH_CONTEXT_LAST,
+    SORT_FN_VOID_COMPARE_WITH_CONTEXT_FIRST_THEN_CONTEXT,
+    SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT,
+    SORT_FN_INT_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT,
+    SORT_FN_VOID_CONTEXT_THEN_COMPARE_WITH_CONTEXT_FIRST,
+    SORT_FN_VOID_CONTEXT_THEN_COMPARE_WITH_CONTEXT_LAST,
+    SORT_FN_INT_CONTEXT_THEN_COMPARE_WITH_CONTEXT_LAST,
 };
 
 enum performance {
@@ -62,12 +64,13 @@ struct sort_function {
     const char *name;
     enum sort_function_type type;
     union {
-        void (*no_context)(void *base, size_t nelems, size_t size, compare_without_context_fn_t compare);
+        void (*void_no_context)(void *base, size_t nelems, size_t size, compare_without_context_fn_t compare);
         int (*int_no_context)(void *base, size_t nelems, size_t size, compare_without_context_fn_t compare);
-        void (*compare_with_context_first_then_context)(void *base, size_t nelems, size_t size, compare_with_context_first_fn_t compare, void *context);
-        void (*compare_with_context_last_then_context)(void *base, size_t nelems, size_t size, compare_with_context_last_fn_t compare, void *context);
-        void (*context_then_compare_with_context_first)(void *base, size_t nelems, size_t size, void *context, compare_with_context_first_fn_t compare);
-        void (*context_then_compare_with_context_last)(void *base, size_t nelems, size_t size, void *context, compare_with_context_last_fn_t compare);
+        void (*void_compare_with_context_first_then_context)(void *base, size_t nelems, size_t size, compare_with_context_first_fn_t compare, void *context);
+        void (*void_compare_with_context_last_then_context)(void *base, size_t nelems, size_t size, compare_with_context_last_fn_t compare, void *context);
+        int (*int_compare_with_context_last_then_context)(void *base, size_t nelems, size_t size, compare_with_context_last_fn_t compare, void *context);
+        void (*void_context_then_compare_with_context_first)(void *base, size_t nelems, size_t size, void *context, compare_with_context_first_fn_t compare);
+        void (*void_context_then_compare_with_context_last)(void *base, size_t nelems, size_t size, void *context, compare_with_context_last_fn_t compare);
     } fn;
     enum performance perf;
 };
@@ -75,21 +78,25 @@ struct sort_function {
 typedef struct sort_function sort_fn_t;
 
 static const sort_fn_t sort_functions[] = {
-    {"qsort", SORT_FN_NO_CONTEXT, {.no_context = qsort}, .perf = PERF_FAST},
+    /* system-provided sort functions */
+    {"qsort", SORT_FN_VOID_NO_CONTEXT, {.void_no_context = qsort}, .perf = PERF_FAST},
 #if defined(LIBBSD_OVERLAY) || defined(__APPLE__)
     {"mergesort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = mergesort}, .perf = PERF_FAST},
     {"heapsort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = heapsort}, .perf = PERF_MID},
 #endif
 #if defined(__APPLE__)
-    {"psort", SORT_FN_NO_CONTEXT, {.no_context = psort}, .perf = PERF_FAST},
+    {"psort", SORT_FN_VOID_NO_CONTEXT, {.void_no_context = psort}, .perf = PERF_FAST},
 #endif
-    {"bentley_mcilroy_quicksort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = bentley_mcilroy_quicksort}, .perf = PERF_FAST},
-    {"ochs_smoothsort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = ochs_smoothsort}, .perf = PERF_FAST},
-    {"merge_sort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort}, .perf = PERF_FAST},
-    {"merge_sort_ptr", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_ptr}, .perf = PERF_FAST},
-    {"merge_sort_indexed", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_indexed}, .perf = PERF_FAST},
-    {"insertion_sort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = insertion_sort}, .perf = PERF_SLOW},
-    {"insertion_sort_v2", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = insertion_sort_v2}, .perf = PERF_SLOW},
+    /* our implementations */
+    {"merge_sort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = merge_sort}, .perf = PERF_FAST},
+    {"merge_sort_ptr", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = merge_sort_ptr}, .perf = PERF_FAST},
+    {"merge_sort_indexed", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = merge_sort_indexed}, .perf = PERF_FAST},
+    {"insertion_sort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = insertion_sort}, .perf = PERF_SLOW},
+    {"insertion_sort_v2", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = insertion_sort_v2}, .perf = PERF_SLOW},
+    /* third-party sort functions */
+    {"bentley_mcilroy_quicksort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = bentley_mcilroy_quicksort}, .perf = PERF_FAST},
+    {"ochs_smoothsort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = ochs_smoothsort}, .perf = PERF_FAST},
+    {"timsort_r", SORT_FN_INT_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.int_compare_with_context_last_then_context = timsort_r}, .perf = PERF_FAST},
 };
 
 static int compare_elem(const void *a_ptr, const void *b_ptr)
@@ -116,23 +123,26 @@ static int call_sort_function(const sort_fn_t *sort, void *base, size_t nelems, 
 {
     int result = 0;
     switch (sort->type) {
-        case SORT_FN_NO_CONTEXT:
-            sort->fn.no_context(base, nelems, size, compare_elem);
+        case SORT_FN_VOID_NO_CONTEXT:
+            sort->fn.void_no_context(base, nelems, size, compare_elem);
             break;
         case SORT_FN_INT_NO_CONTEXT:
             result = sort->fn.int_no_context(base, nelems, size, compare_elem);
             break;
-        case SORT_FN_COMPARE_WITH_CONTEXT_FIRST_THEN_CONTEXT:
-            sort->fn.compare_with_context_first_then_context(base, nelems, size, compare_elem_with_context, context);
+        case SORT_FN_VOID_COMPARE_WITH_CONTEXT_FIRST_THEN_CONTEXT:
+            sort->fn.void_compare_with_context_first_then_context(base, nelems, size, compare_elem_with_context, context);
             break;
-        case SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT:
-            sort->fn.compare_with_context_last_then_context(base, nelems, size, compare_elem_with_context_last, context);
+        case SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT:
+            sort->fn.void_compare_with_context_last_then_context(base, nelems, size, compare_elem_with_context_last, context);
             break;
-        case SORT_FN_CONTEXT_THEN_COMPARE_WITH_CONTEXT_FIRST:
-            sort->fn.context_then_compare_with_context_first(base, nelems, size, context, compare_elem_with_context);
+        case SORT_FN_INT_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT:
+            result = sort->fn.int_compare_with_context_last_then_context(base, nelems, size, compare_elem_with_context_last, context);
             break;
-        case SORT_FN_CONTEXT_THEN_COMPARE_WITH_CONTEXT_LAST:
-            sort->fn.context_then_compare_with_context_last(base, nelems, size, context, compare_elem_with_context_last);
+        case SORT_FN_VOID_CONTEXT_THEN_COMPARE_WITH_CONTEXT_FIRST:
+            sort->fn.void_context_then_compare_with_context_first(base, nelems, size, context, compare_elem_with_context);
+            break;
+        case SORT_FN_VOID_CONTEXT_THEN_COMPARE_WITH_CONTEXT_LAST:
+            sort->fn.void_context_then_compare_with_context_last(base, nelems, size, context, compare_elem_with_context_last);
             break;
         default:
             assert(0 && "unknown sort function type");

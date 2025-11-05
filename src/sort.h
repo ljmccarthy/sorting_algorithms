@@ -43,3 +43,5 @@ void merge_sort_indexed(void *base, size_t nelems, size_t size, compare_fn_t com
 /* Third-party sorting algorithms */
 void bentley_mcilroy_quicksort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
 void ochs_smoothsort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
+
+#include "../third_party/timsort/timsort.h"

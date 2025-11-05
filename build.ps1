@@ -27,7 +27,7 @@ if (-not (Test-Path $buildDir)) {
 }
 
 $SrcFiles = Get-ChildItem -Path .\src -Filter *.c -File | ForEach-Object { $_.FullName }
-$SrcFiles += Get-ChildItem -Path .\third_party -Filter *.c -File | ForEach-Object { $_.FullName }
+$SrcFiles += Get-ChildItem -Path .\third_party -Recurse -Depth 1 -Filter *.c -File | ForEach-Object { $_.FullName }
 $clArgs = "/nologo", "/MP", "/W3", "/std:c17", "/Fe:test_sort.exe" + $ConfigurationFlags + $SrcFiles  
 
 Push-Location $BuildDir
