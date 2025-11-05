@@ -32,6 +32,9 @@ On Windows, open a Visual Studio PowerShell prompt and run the `build.ps1` scrip
 
     test_sort [-f <function>] [-n <array-size>] [-s <elem-size>] [-r <seed>]
 
+    -h
+    --help
+        Display usage help and list available sort functions.
     -f <function>
         Specify the name of the function to test. If omitted, all functions will be tested.
     -n <array-size>
