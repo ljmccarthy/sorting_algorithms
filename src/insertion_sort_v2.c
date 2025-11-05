@@ -1,5 +1,5 @@
 /*
- * Written by Luke McCarthy <luke@iogopro.co.uk>
+ * Written by Luke McCarthy <luke@iogopro.co.uk>, 3 Nov 2025
  * https://github.com/ljmccarthy/sorting_algorithms
  *
  * This is free and unencumbered software released into the public domain.
@@ -28,18 +28,32 @@
  * For more information, please refer to <https://unlicense.org/>
  */
 
-#pragma once
-#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include "sort.h"
 
-typedef int (*compare_fn_t)(const void *, const void *, void *);
-
-/* Our implementations */
-void insertion_sort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
-void insertion_sort_v2(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
-void merge_sort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
-void merge_sort_ptr(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
-void merge_sort_indexed(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
-
-/* Third-party sorting algorithms */
-void bentley_mcilroy_quicksort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
-void ochs_smoothsort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
+/*
+ * This version of insertion sort first determines the correct position to insert before
+ * moving any data, then uses memmove to bulk move all elements after the insertion point.
+ * This is faster than repeatedly swapping the element until it finds the correct position.
+ * It also scans the sorted array forwards instead of backwards.
+ */
+void insertion_sort_v2(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context)
+{
+    char temp_buf[1024];
+    char *temp = size > sizeof(temp_buf) ? malloc(size) : temp_buf;
+    char *end = (char *) base + nelems * size;
+    for (char *unsorted = (char *) base + size; unsorted != end; unsorted += size) {
+        for (char *cur = base; cur != unsorted; cur += size) {
+            if (compare(unsorted, cur, context) < 0) {
+                memcpy(temp, unsorted, size);
+                memmove(cur + size, cur, (size_t) (unsorted - cur));
+                memcpy(cur, temp, size);
+                break;
+            }
+        }
+    }
+    if (temp != temp_buf) {
+        free(temp);
+    }
+}

@@ -89,6 +89,7 @@ static const sort_fn_t sort_functions[] = {
     {"merge_sort_ptr", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_ptr}, .perf = PERF_FAST},
     {"merge_sort_indexed", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = merge_sort_indexed}, .perf = PERF_FAST},
     {"insertion_sort", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = insertion_sort}, .perf = PERF_SLOW},
+    {"insertion_sort_v2", SORT_FN_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.compare_with_context_last_then_context = insertion_sort_v2}, .perf = PERF_SLOW},
 };
 
 static int compare_elem(const void *a_ptr, const void *b_ptr)
