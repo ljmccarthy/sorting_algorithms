@@ -28,6 +28,10 @@
 #
 # For more information, please refer to <https://unlicense.org/>
 
+CFLAGS="-std=c17 -Wall -Wextra -Wpedantic -Wconversion -Wstrict-overflow=5 -Wno-missing-field-initializers"
+CFLAGS_Debug="-O0 -ggdb -fsanitize=address -fsanitize=undefined"
+CFLAGS_Release="-O2 -DNDEBUG"
+
 set -euo pipefail
 
 usage() {
@@ -41,11 +45,7 @@ fi
 
 BUILD_TYPE="$1"
 shift
-if [ "$BUILD_TYPE" = Debug ]; then
-    BUILD_TYPE_CFLAGS="-O0 -ggdb -fsanitize=address -fsanitize=undefined"
-elif [ "$BUILD_TYPE" = Release ]; then
-    BUILD_TYPE_CFLAGS="-O2 -DNDEBUG"
-else
+if [ "$BUILD_TYPE" != Debug -a "$BUILD_TYPE" != Release ]; then
     usage
 fi
 
@@ -54,12 +54,13 @@ if [ -z "${CC+x}" ]; then
 fi
 
 PLATFORM_CFLAGS=""
-if [ "$(uname)" = Linux ]; then
+if [ "$(uname)" = Linux -a -d /usr/include/bsd ]; then
     PLATFORM_CFLAGS="-DLIBBSD_OVERLAY -isystem /usr/include/bsd -lbsd"
 fi
 
 BUILD_DIR="build/$BUILD_TYPE"
-CFLAGS="$BUILD_TYPE_CFLAGS $PLATFORM_CFLAGS -std=c17 -Wall -Wextra -Wpedantic -Wconversion -Wstrict-overflow=5 -Wno-missing-field-initializers"
+CFLAGS_VARIANT_VAR="CFLAGS_${BUILD_TYPE}"
+CFLAGS="${!CFLAGS_VARIANT_VAR} $PLATFORM_CFLAGS $CFLAGS"
 
 mkdir -p "$BUILD_DIR"
 $CC $CFLAGS -o "$BUILD_DIR/test_sort" src/*.c third_party/*.c third_party/*/*.c
