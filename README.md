@@ -12,7 +12,7 @@ The program test_sort tests the following sort functions:
 - Third-party sort functions included in this repository:
     - Bentley & McIlroy's classic quicksort
     - Lynn Och's implementation of Knuth's smoothsort (which is used as qsort in musl libc)
-    - Patrick Perry's port of Timsort to C
+    - Patrick Perry's port of Tim Peter's Timsort to C from the Java port (which was ported from Python's list sort function)
 
 The project is released in to the public domain with the Unlicense. Third-party code included in the `third_party` directory are licensed under their own licenses (see the source code for details).
 
@@ -36,10 +36,16 @@ On Windows, open a Visual Studio PowerShell prompt and run the `build.ps1` scrip
     --help
         Display usage help and list available sort functions.
     -f <function>
-        Specify the name of the function to test. If omitted, all functions will be tested.
+        Specify the name of the function to test. If omitted, all functions not
+        classified as slow will be tested.
     -n <array-size>
         Specify the number of array elements (default: 1000000).
     -s <elem-size>
         Specify the size in bytes of each array element (default: 64).
     -r <seed>
         Specify a random seed to use (32-bit integer).
+
+## References
+
+- Musl qsort - https://git.musl-libc.org/cgit/musl/tree/src/stdlib/qsort.c
+- Timsort - https://github.com/patperry/timsort
