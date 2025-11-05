@@ -96,7 +96,7 @@ static const sort_fn_t sort_functions[] = {
     /* third-party sort functions */
     {"bentley_mcilroy_quicksort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = bentley_mcilroy_quicksort}, .perf = PERF_FAST},
     {"ochs_smoothsort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = ochs_smoothsort}, .perf = PERF_FAST},
-    {"timsort_r", SORT_FN_INT_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.int_compare_with_context_last_then_context = timsort_r}, .perf = PERF_FAST},
+    {"timsort", SORT_FN_INT_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.int_compare_with_context_last_then_context = timsort_r}, .perf = PERF_FAST},
 };
 
 static int compare_elem(const void *a_ptr, const void *b_ptr)
@@ -277,7 +277,7 @@ static bool test_random_array(const sort_fn_t *sort, size_t array_size, size_t e
     return result;
 }
 
-static bool run_tests(const sort_fn_t *sort, random_seed_t *seed, size_t array_size, size_t elem_size)
+static bool run_tests(const sort_fn_t *sort, random_seed_t seed, size_t array_size, size_t elem_size)
 {
     printf("Testing sort function: %s\n", sort->name);
 
@@ -288,10 +288,10 @@ static bool run_tests(const sort_fn_t *sort, random_seed_t *seed, size_t array_s
     if (!test_reverse_ordered_array(sort, array_size, elem_size, &times[1])) {
         return false;
     }
-    if (!test_mostly_ordered_array(sort, array_size, elem_size, seed, &times[2])) {
+    if (!test_mostly_ordered_array(sort, array_size, elem_size, &seed, &times[2])) {
         return false;
     }
-    if (!test_random_array(sort, array_size, elem_size, seed, &times[3])) {
+    if (!test_random_array(sort, array_size, elem_size, &seed, &times[3])) {
         return false;
     }
 
@@ -397,13 +397,13 @@ int main(int argc, char **argv)
     if (!sort) {
         for (size_t i = 0; i < ARRAY_SIZE(sort_functions); i++) {
             if (sort_functions[i].perf > PERF_SLOW || array_size <= 10000) {
-                if (!run_tests(&sort_functions[i], &seed, array_size, elem_size)) {
+                if (!run_tests(&sort_functions[i], seed, array_size, elem_size)) {
                     return 1;
                 }
             }
         }
     } else {
-        if (!run_tests(sort, &seed, array_size, elem_size)) {
+        if (!run_tests(sort, seed, array_size, elem_size)) {
             return 1;
         }
     }
