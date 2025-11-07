@@ -39,6 +39,10 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+#define ELEM_MAX UINT32_MAX
+
+typedef uint32_t elem_t;
+
 typedef int (*compare_without_context_fn_t)(const void *lhs, const void *rhs);
 typedef int (*compare_with_context_first_fn_t)(void *context, const void *lhs, const void *rhs);
 typedef int (*compare_with_context_last_fn_t)(const void *lhs, const void *rhs, void *context);
@@ -80,7 +84,7 @@ typedef struct sort_function sort_fn_t;
 static const sort_fn_t sort_functions[] = {
     /* system-provided sort functions */
     {"qsort", SORT_FN_VOID_NO_CONTEXT, {.void_no_context = qsort}, .perf = PERF_FAST},
-#if defined(LIBBSD_OVERLAY) || defined(__APPLE__)
+#if defined(LIBBSD_OVERLAY) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     {"mergesort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = mergesort}, .perf = PERF_FAST},
     {"heapsort", SORT_FN_INT_NO_CONTEXT, {.int_no_context = heapsort}, .perf = PERF_MID},
 #endif
@@ -101,9 +105,9 @@ static const sort_fn_t sort_functions[] = {
 
 static int compare_elem(const void *a_ptr, const void *b_ptr)
 {
-    size_t a, b;
-    memcpy(&a, a_ptr, sizeof(size_t));
-    memcpy(&b, b_ptr, sizeof(size_t));
+    elem_t a, b;
+    memcpy(&a, a_ptr, sizeof(a));
+    memcpy(&b, b_ptr, sizeof(b));
     return (a > b) - (a < b);
 }
 
@@ -180,7 +184,7 @@ static bool test_sort(void *array, size_t size, size_t nelems, const sort_fn_t *
     if (!result) {
         printf("\nArray after sort:\n");
         print_array(array_copy_test, nelems, size);
-        printf("Test '%s' failed!\n", test_name);
+        printf("Test '%s' failed for sort function %s!\n", test_name, sort->name);
     }
     free(array_copy_test);
     free(array_copy_check);
@@ -198,110 +202,163 @@ static inline uint32_t random_uint32(random_seed_t *seed)
     return *seed;
 }
 
-static void init_array_sequential(char *array, size_t array_size, size_t elem_size)
+static void array_init_ascending(char *array, elem_t array_size, size_t elem_size)
 {
     char *elem = array;
-    for (size_t i = 0; i < array_size; i++) {
+    for (elem_t i = 0; i < array_size; i++) {
         memset(elem, 0, elem_size);
-        memcpy(elem, &i, sizeof(size_t));
+        memcpy(elem, &i, sizeof(elem_t));
         elem += elem_size;
     }
 }
 
-static void reverse_array(char *array, size_t array_size, size_t elem_size)
+static void array_init_descending(char *array, elem_t array_size, size_t elem_size)
 {
-    void *temp = malloc(elem_size);
-    for (size_t i = 0; i < array_size / 2; i++) {
-        memcpy(temp, array + i * elem_size, elem_size);
-        memcpy(array + i * elem_size, array + (array_size - 1 - i) * elem_size, elem_size);
-        memcpy(array + (array_size - 1 - i) * elem_size, temp, elem_size);
+    char *elem = array;
+    for (elem_t i = 0; i < array_size; i++) {
+        elem_t value = array_size - 1 - i;
+        memset(elem, 0, elem_size);
+        memcpy(elem, &value, sizeof(elem_t));
+        elem += elem_size;
     }
-    free(temp);
 }
 
-static void random_shuffle(char *array, size_t array_size, size_t elem_size, uint32_t *seed)
+static void array_swap(char *array, size_t elem_size, size_t i, size_t j)
 {
-    void *temp = malloc(elem_size);
+    char temp_buf[1024];
+    char *temp = elem_size > sizeof(temp_buf) ? malloc(elem_size) : temp_buf;
+    memcpy(temp, array + i * elem_size, elem_size);
+    memcpy(array + i * elem_size, array + j * elem_size, elem_size);
+    memcpy(array + j * elem_size, temp, elem_size);
+    if (temp != temp_buf) {
+        free(temp);
+    }
+}
+
+static void array_random_shuffle(char *array, size_t array_size, size_t elem_size, uint32_t *seed)
+{
     for (size_t i = 0; i < array_size; i++) {
         size_t j = random_uint32(seed) % (i + 1);
-        memcpy(temp, array + i * elem_size, elem_size);
-        memcpy(array + i * elem_size, array + j * elem_size, elem_size);
-        memcpy(array + j * elem_size, temp, elem_size);
+        array_swap(array, elem_size, i, j);
     }
-    free(temp);
 }
 
-static bool test_ordered_array(const sort_fn_t *sort, size_t array_size, size_t elem_size, clock_t *out_time)
+static bool test_ascending_array(const sort_fn_t *sort, elem_t array_size, size_t elem_size, clock_t *out_time)
 {
     char *array = calloc(array_size, elem_size);
-    init_array_sequential(array, array_size, elem_size);
-    bool result = test_sort(array, elem_size, array_size, sort, "ordered array", out_time);
+    array_init_ascending(array, array_size, elem_size);
+    bool result = test_sort(array, elem_size, array_size, sort, "ascending array", out_time);
     free(array);
     return result;
 }
 
-static bool test_mostly_ordered_array(const sort_fn_t *sort, size_t array_size, size_t elem_size, random_seed_t *seed, clock_t *out_time)
+static bool test_mostly_ascending_array(const sort_fn_t *sort, elem_t array_size, size_t elem_size, random_seed_t *seed, clock_t *out_time)
 {
     char *array = calloc(array_size, elem_size);
-    init_array_sequential(array, array_size, elem_size);
-    char *temp = malloc(elem_size);
+    array_init_ascending(array, array_size, elem_size);
     for (size_t i = 0; i < array_size / 10; i++) {
         size_t j = random_uint32(seed) % array_size;
-        memcpy(temp, array + i * elem_size, elem_size);
-        memcpy(array + i * elem_size, array + j * elem_size, elem_size);
-        memcpy(array + j * elem_size, temp, elem_size);
+        array_swap(array, elem_size, i, j);
     }
-    free(temp);
-    bool result = test_sort(array, elem_size, array_size, sort, "mostly ordered array", out_time);
+    bool result = test_sort(array, elem_size, array_size, sort, "mostly ascending array", out_time);
     free(array);
     return result;
 }
 
-static bool test_reverse_ordered_array(const sort_fn_t *sort, size_t array_size, size_t elem_size, clock_t *out_time)
+static bool test_descending_array(const sort_fn_t *sort, elem_t array_size, size_t elem_size, clock_t *out_time)
 {
     char *array = calloc(array_size, elem_size);
-    init_array_sequential(array, array_size, elem_size);
-    reverse_array(array, array_size, elem_size);
-    bool result = test_sort(array, elem_size, array_size, sort, "reverse ordered array", out_time);
+    array_init_descending(array, array_size, elem_size);
+    bool result = test_sort(array, elem_size, array_size, sort, "descending array", out_time);
     free(array);
     return result;
 }
 
-static bool test_random_array(const sort_fn_t *sort, size_t array_size, size_t elem_size, random_seed_t *seed, clock_t *out_time)
+static bool test_ascending_then_descending_array(const sort_fn_t *sort, elem_t array_size, size_t elem_size, clock_t *out_time)
 {
     char *array = calloc(array_size, elem_size);
-    init_array_sequential(array, array_size, elem_size);
-    random_shuffle(array, array_size, elem_size, seed);
+    elem_t middle = array_size / 2;
+    array_init_ascending(array, middle, elem_size);
+    array_init_descending(array + middle * elem_size, array_size - middle, elem_size);
+    bool result = test_sort(array, elem_size, array_size, sort, "ascending then descending array", out_time);
+    free(array);
+    return result;
+}
+
+static bool test_sawtooth_array(const sort_fn_t *sort, elem_t array_size, size_t elem_size, clock_t *out_time)
+{
+    char *array = calloc(array_size, elem_size);
+    elem_t segment_size = 10;
+    for (elem_t i = 0; i < array_size; i += segment_size) {
+        elem_t current_segment_size = (i + segment_size <= array_size) ? segment_size : (array_size - i);
+        array_init_ascending(array + i * elem_size, current_segment_size, elem_size);
+    }
+    bool result = test_sort(array, elem_size, array_size, sort, "sawtooth array", out_time);
+    free(array);
+    return result;
+}
+
+static bool test_reverse_sawtooth_array(const sort_fn_t *sort, elem_t array_size, size_t elem_size, clock_t *out_time)
+{
+    char *array = calloc(array_size, elem_size);
+    elem_t segment_size = 10;
+    for (elem_t i = 0; i < array_size; i += segment_size) {
+        elem_t current_segment_size = (i + segment_size <= array_size) ? segment_size : (array_size - i);
+        array_init_descending(array + i * elem_size, current_segment_size, elem_size);
+    }
+    bool result = test_sort(array, elem_size, array_size, sort, "reverse sawtooth array", out_time);
+    free(array);
+    return result;
+}
+
+static bool test_random_array(const sort_fn_t *sort, elem_t array_size, size_t elem_size, random_seed_t *seed, clock_t *out_time)
+{
+    char *array = calloc(array_size, elem_size);
+    array_init_ascending(array, array_size, elem_size);
+    array_random_shuffle(array, array_size, elem_size, seed);
     bool result = test_sort(array, elem_size, array_size, sort, "random array", out_time);
     free(array);
     return result;
 }
 
-static bool run_tests(const sort_fn_t *sort, random_seed_t seed, size_t array_size, size_t elem_size)
+static bool run_tests(const sort_fn_t *sort, random_seed_t seed, elem_t array_size, size_t elem_size)
 {
     printf("Testing sort function: %s\n", sort->name);
 
-    clock_t times[4];
-    if (!test_ordered_array(sort, array_size, elem_size, &times[0])) {
+    clock_t total_time = 0;
+    clock_t time = 0;
+
+    if (!test_ascending_array(sort, array_size, elem_size, &time)) {
         return false;
     }
-    if (!test_reverse_ordered_array(sort, array_size, elem_size, &times[1])) {
+    total_time += time;
+    if (!test_mostly_ascending_array(sort, array_size, elem_size, &seed, &time)) {
         return false;
     }
-    if (!test_mostly_ordered_array(sort, array_size, elem_size, &seed, &times[2])) {
+    total_time += time;
+    if (!test_descending_array(sort, array_size, elem_size, &time)) {
         return false;
     }
-    if (!test_random_array(sort, array_size, elem_size, &seed, &times[3])) {
+    total_time += time;
+    if (!test_ascending_then_descending_array(sort, array_size, elem_size, &time)) {
         return false;
     }
+    total_time += time;
+    if (!test_sawtooth_array(sort, array_size, elem_size, &time)) {
+        return false;
+    }
+    total_time += time;
+    if (!test_reverse_sawtooth_array(sort, array_size, elem_size, &time)) {
+        return false;
+    }
+    total_time += time;
+    if (!test_random_array(sort, array_size, elem_size, &seed, &time)) {
+        return false;
+    }
+    total_time += time;
 
     // Don't print timing information in debug builds to avoid unfair comparisons
 #ifdef NDEBUG
-    clock_t total_time = 0;
-    for (size_t i = 0; i < ARRAY_SIZE(times); i++) {
-        total_time += times[i];
-    }
-
     double total_time_seconds = (double) total_time / CLOCKS_PER_SEC;
     if (total_time_seconds > 0.1) {
         printf("Time: %.2f seconds\n", total_time_seconds);
@@ -328,7 +385,7 @@ static void usage(void)
 int main(int argc, char **argv)
 {
     const sort_fn_t *sort = NULL;
-    size_t array_size = 1000000;
+    elem_t array_size = 1000000;
     size_t elem_size = 64;
     random_seed_t seed = 0xCAFECAFE;
 
@@ -360,12 +417,12 @@ int main(int argc, char **argv)
                 return 1;
             }
             unsigned long long size = strtoull(argv[++i], NULL, 10);
-            if (size <= 0 || size != (size_t) size) {
+            if (size <= 0 || size > ELEM_MAX) {
                 fprintf(stderr, "error: invalid array size: %llu\n", size);
                 usage();
                 return 1;
             }
-            array_size = (size_t) size;
+            array_size = (elem_t) size;
         } else if (strcmp(argv[i], "-s") == 0) {
             if (i + 1 >= argc) {
                 fprintf(stderr, "error: missing argument to -s\n");
@@ -373,7 +430,7 @@ int main(int argc, char **argv)
                 return 1;
             }
             unsigned long long size = strtoull(argv[++i], NULL, 10);
-            if (size <= 0 || size < sizeof(size_t) || size != (size_t) size) {
+            if (size <= 0 || size < sizeof(elem_t) || size > 0x40000000) {
                 fprintf(stderr, "error: invalid element size: %llu\n", size);
                 usage();
                 return 1;
@@ -393,7 +450,7 @@ int main(int argc, char **argv)
         }
     }
 
-    printf("Array size: %zu, Element size: %zu, Random seed: %u\n", array_size, elem_size, seed);
+    printf("Array size: %u, Element size: %zu, Random seed: %u\n", array_size, elem_size, seed);
     if (!sort) {
         for (size_t i = 0; i < ARRAY_SIZE(sort_functions); i++) {
             if (sort_functions[i].perf > PERF_SLOW || array_size <= 10000) {
