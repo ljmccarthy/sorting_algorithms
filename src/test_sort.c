@@ -101,6 +101,8 @@ static const sort_fn_t sort_functions[] = {
     {"bentley_mcilroy_quicksort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = bentley_mcilroy_quicksort}, .perf = PERF_FAST},
     {"ochs_smoothsort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = ochs_smoothsort}, .perf = PERF_FAST},
     {"timsort", SORT_FN_INT_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.int_compare_with_context_last_then_context = timsort_r}, .perf = PERF_FAST},
+    {"bsd_heapsort", SORT_FN_INT_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.int_compare_with_context_last_then_context = bsd_heapsort}, .perf = PERF_FAST},
+    {"bsd_mergesort", SORT_FN_INT_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.int_compare_with_context_last_then_context = bsd_mergesort}, .perf = PERF_FAST},
 };
 
 static int compare_elem(const void *a_ptr, const void *b_ptr)

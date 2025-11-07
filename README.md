@@ -13,6 +13,8 @@ The program test_sort tests the following sort functions:
     - Bentley & McIlroy's classic quicksort
     - Lynn Och's implementation of Knuth's smoothsort (which is used as qsort in musl libc)
     - Patrick Perry's port of Tim Peter's Timsort to C from the Java port (which was ported from Python's list sort function)
+    - BSD heapsort function (copied from OpenBSD)
+    - BSD mergesort function by Peter McIlroy (copied from FreeBSD)
 
 The project is released in to the public domain with the Unlicense. Third-party code included in the `third_party` directory are licensed under their own licenses (see the source code for details).
 
