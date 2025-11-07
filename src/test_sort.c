@@ -97,6 +97,8 @@ static const sort_fn_t sort_functions[] = {
     {"merge_sort_indexed", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = merge_sort_indexed}, .perf = PERF_FAST},
     {"insertion_sort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = insertion_sort}, .perf = PERF_SLOW},
     {"insertion_sort_v2", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = insertion_sort_v2}, .perf = PERF_SLOW},
+    {"selection_sort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = selection_sort}, .perf = PERF_SLOW},
+    {"minmax_selection_sort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = minmax_selection_sort}, .perf = PERF_SLOW},
     /* third-party sort functions */
     {"bentley_mcilroy_quicksort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = bentley_mcilroy_quicksort}, .perf = PERF_FAST},
     {"ochs_smoothsort", SORT_FN_VOID_COMPARE_WITH_CONTEXT_LAST_THEN_CONTEXT, {.void_compare_with_context_last_then_context = ochs_smoothsort}, .perf = PERF_FAST},

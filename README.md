@@ -9,6 +9,7 @@ The program test_sort tests the following sort functions:
 - Some of my own implementations of:
     - Merge sort (including indirect pointer and indexed variants)
     - Insertion sort
+    - Selection sort (normal and minmax variants)
 - Third-party sort functions included in this repository:
     - Bentley & McIlroy's classic quicksort
     - Lynn Och's implementation of Knuth's smoothsort (which is used as qsort in musl libc)

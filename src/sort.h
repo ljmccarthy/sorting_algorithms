@@ -39,6 +39,8 @@ void insertion_sort_v2(void *base, size_t nelems, size_t size, compare_fn_t comp
 void merge_sort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
 void merge_sort_ptr(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
 void merge_sort_indexed(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
+void selection_sort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
+void minmax_selection_sort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
 
 /* Third-party sorting algorithms */
 void bentley_mcilroy_quicksort(void *base, size_t nelems, size_t size, compare_fn_t compare, void *context);
