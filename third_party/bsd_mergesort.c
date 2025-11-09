@@ -132,7 +132,8 @@ bsd_mergesort(void *base, size_t nmemb, size_t size, cmp_t cmp, void *ctx)
 	list1 = base;
 	setup(list1, list2, nmemb, size, cmp, ctx);
 	last = list2 + nmemb * size;
-	i = big = 0;
+	i = 0;
+	big = 0;
 	while (*EVAL(list2) != last) {
 	    l2 = list1;
 	    p1 = EVAL(list1);
